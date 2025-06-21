@@ -1,10 +1,21 @@
 {
   "name": "jotai-machine",
-  "version": "0.0.1",
+  "version": "0.0.0",
   "description": "A simple state machine based on Jotai atoms",
-  "main": "index.js",
+  "type": "module",
+  "main": "./dist/jotai-machine.cjs",
+  "exports": {
+    ".": {
+      "import": "./dist/jotai-machine.js",
+      "require": "./dist/jotai-machine.cjs"
+    }
+  },
+  "module": "./dist/jotai-machine.js",
   "scripts": {
-    "test": "test"
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "lint": "eslint ./src --ext .ts"
   },
   "repository": {
     "type": "git",
@@ -13,12 +24,30 @@
   "keywords": [
     "jotai",
     "fsm",
-    "state"
+    "state machine",
+    "state",
+    "react"
   ],
-  "author": "Simon Jentsch (@tchock)",
+  "author": "simon@bojagi.io",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/tchock/jotai-machine/issues"
   },
-  "homepage": "https://github.com/tchock/jotai-machine#readme"
+  "homepage": "https://github.com/tchock/jotai-machine#readme",
+  "devDependencies": {
+    "@eslint/js": "^9.29.0",
+    "eslint": "^9.29.0",
+    "eslint-config-prettier": "^10.1.5",
+    "eslint-plugin-prettier": "^5.5.0",
+    "prettier": "3.5.3",
+    "prettier-eslint": "^16.4.2",
+    "typescript": "^5.8.3",
+    "typescript-eslint": "^8.34.1",
+    "vite": "^6.3.5",
+    "vite-plugin-dts": "^4.5.4",
+    "vitest": "^3.2.4"
+  },
+  "peerDependencies": {
+    "jotai": "^2.12.5"
+  }
 }
