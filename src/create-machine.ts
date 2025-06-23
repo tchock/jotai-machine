@@ -1,30 +1,59 @@
 import { atom } from 'jotai/vanilla'
 
-import type { WritableAtom } from 'jotai'
-import type { EventName, MachineStatePrimitive, Transitions } from './types'
+import type {
+  ContextData,
+  CreateActorOptions,
+  CreateMachineOptions,
+  EventName,
+  MachineAtom,
+  MachineStatePrimitive,
+  Transitions,
+} from './types'
+import { machineContextAtom } from './utils/machine-context-atom'
 
 const ALL = Symbol('ALL')
 
-const createMachine = <T extends MachineStatePrimitive, E extends EventName>(
-  initialState: T,
-  transitions: Transitions<T, E>
-): WritableAtom<T, [eventName: E], void> => {
-  const stateAtom = atom<T>(initialState)
-  const transitionAtom = atom(
-    (get) => get(stateAtom),
-    (get, set, event: E) => {
-      const currentState = get(stateAtom)
-      const transition = transitions[currentState as string | symbol]
-      const nextState: unknown =
-        transition?.[event] ?? transitions[ALL]?.[event]
+const createMachine =
+  <
+    State extends MachineStatePrimitive,
+    Event extends EventName,
+    Context extends ContextData = Record<string, never>,
+  >(
+    initialState: State,
+    transitions: Transitions<State, Event>,
+    createOptions: CreateMachineOptions<Context> = {}
+  ) =>
+  (actorOptions: CreateActorOptions<Context> = {}) => {
+    const stateAtom = atom<State>(initialState)
+    const [contextAtom, contextAtoms] = machineContextAtom(
+      createOptions.context,
+      actorOptions.context
+    )
 
-      if (nextState !== undefined) {
-        set(stateAtom, nextState)
+    const transitionAtom = atom(
+      (get) => get(stateAtom),
+      (get, set, event: Event, partialContext?: Partial<Context>) => {
+        const currentState = get(stateAtom)
+        const transition = transitions[currentState as string | symbol]
+        const nextState = (transition?.[event] ?? transitions[ALL]?.[event]) as
+          | State
+          | undefined
+
+        if (nextState !== undefined) {
+          set(stateAtom, nextState)
+          if (partialContext) {
+            set(contextAtom, partialContext)
+          }
+          return nextState
+        }
+        return currentState
       }
-    }
-  )
+    ) as MachineAtom<State, Event, Context>
 
-  return transitionAtom
-}
+    transitionAtom.contextAtom = contextAtom
+    transitionAtom.contextAtoms = contextAtoms
+
+    return transitionAtom
+  }
 
 export { createMachine, ALL }
